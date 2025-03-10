@@ -1,0 +1,52 @@
+/* General Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+/* Fullscreen Gradient Background */
+.hero {
+    height: 100vh;
+    background: linear-gradient(to right, #007bff, #6610f2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+/* Navbar Button Styles */
+.navbar-nav .nav-link {
+    padding: 8px 15px;
+    border-radius: 5px;
+}
+
+/* About & Contact Section */
+#about, #contact {
+    padding: 60px 0;
+}
+
+/* Button Styles */
+.btn-warning {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.btn-light.text-primary {
+    border: 1px solid #007bff;
+}
+body {
+    background: url('../../assets/images/AU-EEC.jpg') no-repeat center center fixed;
+    background-size: cover;
+    position: relative;
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* 50% opacity */
+}
