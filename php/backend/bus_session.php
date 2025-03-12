@@ -17,7 +17,12 @@ $endpoint = trim($endpoint, "/");
 
 switch ($method) {
     case "GET":
-
+        switch ($endpoint) {
+            case "available-buses":
+                $results = getAvailableBuses($conn);
+                response(200, "Buses fetched successfully", $results);
+                break;
+        }
         break;
 
     case "POST":
@@ -83,6 +88,30 @@ function getBusStatus($id, $isEndSession = false)
         $stmt->execute([$id]);
         return $stmt->fetchColumn() ? true : false;
     } catch (mysqli_sql_exception $e) {
+        response(500, $e->getMessage());
+    }
+}
+
+function getAvailableBuses($conn)
+{
+    $sql = "
+        SELECT buses.*
+        FROM bus_table buses
+        LEFT JOIN bus_records br ON buses.id = br.bus_id AND br.status = 'ONGOING'
+        WHERE buses.status = 'ACTIVE' AND br.id IS NULL
+    ";
+    $stmt = $conn->prepare($sql);
+    try {
+        $stmt->execute();
+        $rows = $stmt -> fetchAll(PDO::FETCH_ASSOC);
+
+        if (!empty($rows)) {
+            return $rows;
+        }else{
+            response(200, "No Available Buses.");
+        }
+
+    } catch (PDOException $e) {
         response(500, $e->getMessage());
     }
 }
