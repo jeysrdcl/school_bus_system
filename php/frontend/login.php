@@ -1,13 +1,11 @@
 <?php
 session_start();
 
-// If the user is logged in, redirect them to the dashboard
 if (isset($_SESSION['user_id'])) {
     header("Location: http://localhost/school_bus_system/dashboard/dashboard.php");
     exit();
 }
 
-// Randomized welcome messages
 $welcomeMessages = [
     "Hi, Welcome Back! 👋",
     "Good to see you again! 😊",
@@ -34,7 +32,7 @@ $randomMessage = $welcomeMessages[array_rand($welcomeMessages)];
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../assets/css/style.css">
     <style>
-       body {
+        body {
             background: url('../../assets/images/AU-EEC.jpg') no-repeat center center fixed;
             background-size: cover;
             height: 90vh;
@@ -71,24 +69,9 @@ $randomMessage = $welcomeMessages[array_rand($welcomeMessages)];
         .login-description {
             font-size: 20px;
         }
-        .input-group {
-            position: relative;
-        }
         .input-group .btn {
             border-radius: 0;
             border-left: none;
-        }
-        .remember-me {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .text-link {
-            color: #0d6efd;
-            text-decoration: none;
-        }
-        .text-link:hover {
-            text-decoration: underline;
         }
     </style>
 </head>
@@ -101,7 +84,6 @@ $randomMessage = $welcomeMessages[array_rand($welcomeMessages)];
             <h2 class="login-description"><?php echo $randomMessage; ?></h2>
         </div>
 
-        <!-- Display error message -->
         <?php if (isset($_SESSION['error'])): ?>
             <div class="alert alert-danger"><?php echo $_SESSION['error']; unset($_SESSION['error']); ?></div>
         <?php endif; ?>
@@ -117,12 +99,14 @@ $randomMessage = $welcomeMessages[array_rand($welcomeMessages)];
                 </button>
             </div>
 
-            <div class="remember-me mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
                     <input type="checkbox" name="remember_me" id="rememberMe">
                     <label for="rememberMe">Remember Me</label>
                 </div>
-                <a href="forgot_password.php" class="text-decoration-none">Forgot your password?</a>
+                <div>
+                    <a href="forgot_password.php" class="text-link">Forgot Password?</a>
+                </div>
             </div>
 
             <button type="submit" class="btn btn-primary w-100">Log in</button>
@@ -141,12 +125,10 @@ $randomMessage = $welcomeMessages[array_rand($welcomeMessages)];
 
             if (passwordInput.type === "password") {
                 passwordInput.type = "text";
-                eyeIcon.classList.remove("bi-eye");
-                eyeIcon.classList.add("bi-eye-slash");
+                eyeIcon.classList.replace("bi-eye", "bi-eye-slash");
             } else {
                 passwordInput.type = "password";
-                eyeIcon.classList.remove("bi-eye-slash");
-                eyeIcon.classList.add("bi-eye");
+                eyeIcon.classList.replace("bi-eye-slash", "bi-eye");
             }
         }
     </script>

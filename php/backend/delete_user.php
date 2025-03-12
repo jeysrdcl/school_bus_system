@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'db_connect.php'; // Ensure the database connection is included
+include 'db_connect.php';
 
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     $_SESSION['error'] = "Unauthorized access!";
@@ -22,6 +22,6 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['id'])) {
     }
 }
 
-header("Location: ../dashboard/users.php"); // Redirect back to user list
+header("Location: ../dashboard/users.php");
 exit();
 ?>

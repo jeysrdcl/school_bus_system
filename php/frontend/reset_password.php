@@ -2,53 +2,45 @@
 session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-require_once($_SERVER['DOCUMENT_ROOT'] . "/school_bus_system/php/backend/db_connect.php");
 
-if (isset($_GET['token'])) {
-    $token = $_GET['token'];
+require_once __DIR__ . "/../backend/db_connect.php"; // Ensure correct path
 
-    // Verify if the token exists
-    $stmt = $conn->prepare("SELECT email FROM password_resets WHERE token = :token");
-    $stmt->bindParam(':token', $token, PDO::PARAM_STR);
-    $stmt->execute();
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$row) {
-        $_SESSION['error'] = "Invalid or expired reset token.";
-        header("Location: forgot_password.php");
-        exit();
-    }
-
-    $email = $row['email']; // Retrieve email associated with the token
+// Check if token is provided
+if (!isset($_GET['token']) || empty($_GET['token'])) {
+    $_SESSION['error'] = "Invalid or expired token, please request a new one.";
+    header("Location: forgot_password.php");
+    exit();
 }
 
+$token = trim($_GET['token']);
+
+// Check if token exists in the database
+$stmt = $conn->prepare("SELECT * FROM password_resets WHERE token = :token");
+$stmt->bindParam(":token", $token, PDO::PARAM_STR);
+$stmt->execute();
+$reset = $stmt->fetch(PDO::FETCH_ASSOC);
+
+// If token is invalid or expired, delete it and redirect
+if (!$reset || strtotime($reset['expiry']) < time()) {
+    $delete_token = $conn->prepare("DELETE FROM password_resets WHERE token = :token");
+    $delete_token->bindParam(':token', $token, PDO::PARAM_STR);
+    $delete_token->execute();
+
+    $_SESSION['error'] = "Invalid or expired token, please request a new one.";
+    header("Location: forgot_password.php");
+    exit();
+}
+
+$email = $reset['email']; // Store email for later use
+
+// Handle password reset form submission
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    if (!isset($_POST['new_password'], $_POST['confirm_password'], $_POST['token'])) {
-        $_SESSION['error'] = "Invalid request.";
-        header("Location: forgot_password.php");
-        exit();
-    }
+    $new_password = trim($_POST['new_password'] ?? '');
+    $confirm_password = trim($_POST['confirm_password'] ?? '');
 
-    $new_password = trim($_POST['new_password']);
-    $confirm_password = trim($_POST['confirm_password']);
-    $token = $_POST['token']; // Retrieve token from form
-
-    // Retrieve email associated with token again (if lost)
-    $stmt = $conn->prepare("SELECT email FROM password_resets WHERE token = :token");
-    $stmt->bindParam(':token', $token, PDO::PARAM_STR);
-    $stmt->execute();
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$row) {
-        $_SESSION['error'] = "Invalid or expired reset token.";
-        header("Location: forgot_password.php");
-        exit();
-    }
-    $email = $row['email']; // Ensure correct email is used
-
-    // Validate passwords
+    // Validate password fields
     if (empty($new_password) || empty($confirm_password)) {
-        $_SESSION['error'] = "Please fill in all fields.";
+        $_SESSION['error'] = "All fields are required.";
     } elseif ($new_password !== $confirm_password) {
         $_SESSION['error'] = "Passwords do not match.";
     } elseif (strlen($new_password) < 8) {
@@ -56,28 +48,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     } else {
         $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
 
-        // Update user's password
+        // Update password in the users table
         $update = $conn->prepare("UPDATE users SET password = :password WHERE email = :email");
         $update->bindParam(':password', $hashed_password, PDO::PARAM_STR);
         $update->bindParam(':email', $email, PDO::PARAM_STR);
         $update->execute();
 
-        // Check if the password was actually updated
         if ($update->rowCount() > 0) {
-            // Delete used reset token to prevent duplication
-            $delete_token = $conn->prepare("DELETE FROM password_resets WHERE email = :email");
-            $delete_token->bindParam(':email', $email, PDO::PARAM_STR);
+            // Delete the used token
+            $delete_token = $conn->prepare("DELETE FROM password_resets WHERE token = :token");
+            $delete_token->bindParam(':token', $token, PDO::PARAM_STR);
             $delete_token->execute();
 
             $_SESSION['success'] = "Your password has been reset successfully!";
-            header("Location: reset_password.php");
+            header("Location: login.php");
             exit();
         } else {
-            $_SESSION['error'] = "Error updating password. Please try again.";
+            $_SESSION['error'] = "Failed to update password. Try again.";
         }
     }
 
-    // Redirect back to reset form if there was an error
     header("Location: reset_password.php?token=" . urlencode($token));
     exit();
 }
@@ -93,7 +83,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../assets/css/style.css">
     <style>
-       body {
+        body {
             background: url('../../assets/images/AU-EEC.jpg') no-repeat center center fixed;
             background-size: cover;
             height: 90vh;
@@ -120,9 +110,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
         .form-label {
             font-weight: bold;
-        }
-        .form-control {
-            position: relative;
         }
         .toggle-password {
             position: absolute;
@@ -174,7 +161,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <?php endif; ?>
 
         <form action="" method="POST">
-            <input type="hidden" name="token" value="<?php echo htmlspecialchars($_GET['token'] ?? ''); ?>">
+            <input type="hidden" name="token" value="<?php echo htmlspecialchars($token); ?>">
 
             <div class="mb-3 input-group">
                 <input type="password" name="new_password" id="new_password" class="form-control" placeholder="Enter new password" required>
@@ -195,25 +182,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         <div class="text-center mt-3">
             <a href="login.php" class="text-link"><i class="bi bi-arrow-left"></i> Back to Login</a>
-            <br>
-            <a href="/school_bus_system/index.php" class="text-link"><i class="bi bi-house-door"></i> Home</a>
         </div>
     </div>
 </body>
-<script>
-    function togglePassword(inputId, iconId) {
-        var passwordInput = document.getElementById(inputId);
-        var eyeIcon = document.getElementById(iconId);
-
-        if (passwordInput.type === "password") {
-            passwordInput.type = "text";
-            eyeIcon.classList.remove("bi-eye");
-            eyeIcon.classList.add("bi-eye-slash");
-        } else {
-            passwordInput.type = "password";
-            eyeIcon.classList.remove("bi-eye-slash");
-            eyeIcon.classList.add("bi-eye");
-        }
-    }
-</script>
 </html>

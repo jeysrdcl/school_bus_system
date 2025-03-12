@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// Check if user is logged in
 if (isset($_SESSION['user_id'])) {
     header("Location: http://localhost/school_bus_system/dashboard/dashboard.php");
     exit();
@@ -14,72 +13,55 @@ if (isset($_SESSION['user_id'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Track System</title>
-
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="assets/css/style.css">
 
     <style>
-        /* Background styling */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             background: url('assets/images/AU-EEC.jpg') no-repeat center center fixed;
             background-size: cover;
-            background-color: #0056b3; /* Fallback color */
+            background-color: #0056b3;
         }
-
-        /* Navbar styling */
         .navbar {
-            background-color: rgba(0, 86, 179, 0.95) !important; /* Darker blue for better contrast */
+            background-color: rgba(0, 86, 179, 0.95) !important;
         }
-
         .navbar-brand {
             font-size: 1.8rem;
             font-weight: bold;
             display: flex;
             align-items: center;
         }
-
         .navbar-brand img {
-            height: 60px; /* Increased size */
+            height: 60px;
             margin-right: 10px;
         }
-
         .navbar-nav .nav-link {
             color: white !important;
             font-size: 1.1rem;
         }
-
-        /* Buttons */
         .btn-login {
-            background-color: #28a745; /* Green */
+            background-color: #28a745;
             color: white;
             font-weight: bold;
             padding: 8px 16px;
             border-radius: 5px;
         }
-
         .btn-signup {
-            background-color: #ff7f00; /* Orange */
+            background-color: #ff7f00;
             color: white;
             font-weight: bold;
             padding: 8px 16px;
             border-radius: 5px;
         }
-
         .btn-login:hover {
             background-color: #218838;
         }
-
         .btn-signup:hover {
             background-color: #e86f00;
         }
-
-        /* Hero Section */
         .hero {
             height: 100vh;
             display: flex;
@@ -92,29 +74,24 @@ if (isset($_SESSION['user_id'])) {
             width: 100%;
             padding-top: 100px; /* Increase this to move it higher */
         }
-
         .hero h1 {
             font-size: 3rem;
             font-weight: bold;
             margin-bottom: 10px; /* Reduce space below heading */
         }
-
         .hero p {
             font-size: 1.2rem;
             margin-bottom: 15px; /* Reduce space below paragraph */
             margin-top: -10px; /* Move button slightly higher */
         }
-
         .btn-custom {
             font-size: 1.2rem;
             padding: 10px 20px;
             font-weight: bold;
         }
-
-        /* About Section */
         .about {
             position: absolute;
-            top: 50%; /* Adjust based on placement in the image */
+            top: 40%;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(255, 255, 255, 0.9);
@@ -123,50 +100,41 @@ if (isset($_SESSION['user_id'])) {
             width: 60%;
             text-align: center;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-            margin-bottom: 50px; /* Adds space between the section and the footer */
+            margin-bottom: 50px;
         }
-
         .about h2 {
             color: #004aad;
             font-size: 2rem;
             margin-bottom: 10px;
         }
-
         .about p {
             color: #333;
             font-size: 1.2rem;
             line-height: 1.5;
         }
-
-        /* Footer Styling */
         .footer {
             background-color: #004aad;
             color: white;
             padding: 40px 20px;
         }
-
         .footer a {
             color: white;
             text-decoration: none;
             margin-right: 15px;
         }
-
         .footer a:hover {
             text-decoration: underline;
         }
-
         .footer img {
             width: 24px;
             margin-right: 10px;
         }
-
         .footer .social-icons {
             margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
             <a class="navbar-brand" href="index.php">
