@@ -3,22 +3,22 @@ include '../../php/backend/session.php';
 
 $system = "/school_bus_system//";
 $directory = $_SERVER['DOCUMENT_ROOT'] . $system;
-// Start session only if it's not already active
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Check if user is logged in and is an admin
+// Debugging Code - Place Here
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header("Location: login.php");
+    echo "Unauthorized access. Redirecting...";
+    header("Refresh:2; url=../../frontend/login.php");
     exit();
 }
 
-// Access user details from the session
-$full_name = $_SESSION['full_name'] ?? 'Admin';
+echo "Welcome, Admin! User ID: " . $_SESSION['user_id'];
+
+$role = $_SESSION['role'] ?? 'Admin';
 $profile_picture = $_SESSION['profile_picture'] ?? '../../assets/images/Default-PFP.jpg';
 
-// Array of random messages
 $messages = [
     "Welcome back, Admin! Ready to manage the system?",
     "Keep up the great work! The system is in good hands!",
@@ -32,7 +32,6 @@ $messages = [
     "Another day of improving the system. Keep it up!"
 ];
 
-// Pick a single random message
 $random_message = $messages[array_rand($messages)];
 ?>
 
@@ -42,11 +41,7 @@ $random_message = $messages[array_rand($messages)];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
-
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="assets/css/style.css">
 
     <style>
@@ -143,7 +138,6 @@ $random_message = $messages[array_rand($messages)];
 </head>
 <body>
 
-<!-- Navigation Bar -->
 <nav class="navbar navbar-expand-lg navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="http://localhost/school_bus_system/index.php">
@@ -153,8 +147,8 @@ $random_message = $messages[array_rand($messages)];
         <div class="ms-auto nav-icons">
             <div class="dropdown">
                 <button class="btn btn-secondary dropdown-toggle nav-profile" type="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    <span><?php echo htmlspecialchars($full_name); ?></span>
                     <img src="<?php echo htmlspecialchars($profile_picture); ?>" alt="Profile Picture">
+                    <span class="role-badge"><?php echo htmlspecialchars($role); ?></span> <!-- Add user role here -->
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
                     <li><a class="dropdown-item text-danger" href="../../php/backend/logout.php">Logout</a></li>
@@ -166,22 +160,14 @@ $random_message = $messages[array_rand($messages)];
 
 <?php include $directory .'/php/frontend/sidebar_component.php'; ?>
 
-<!-- Content -->
 <div class="content">
-    <h1>Welcome, <strong><?php echo htmlspecialchars($full_name); ?>!</strong></h1>
-
-    <!-- Role Message -->
+    <h1>Welcome, <strong><?php echo htmlspecialchars($role); ?>!</strong></h1>
     <p style="font-size: 18px; color: #333; font-weight: bold;">You are logged in as an Admin.</p>
-
-    <!-- Randomized Message -->
     <div class="message-box">
         <p><?php echo $random_message; ?></p>
     </div>
 </div>
-
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
 </script>
 </body>

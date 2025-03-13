@@ -1,24 +1,24 @@
 <?php
 session_start();
 
-// Check if the user is logged in
 if (!isset($_SESSION['user_id'])) {
-    echo 'BBBBBBBB';
     header("Location: ../frontend/login.php");
     exit();
 }
 
-// Redirect admin to admin_dashboard.php
 if ($_SESSION['role'] === 'admin') {
-    header("Location: admin_dashboard.php");
+    header("Location: ../dashboard/admin/admin_dashboard.php");
     exit();
 }
 
-// Access user details from the session
-$full_name = $_SESSION['full_name'] ?? 'Guest';
+if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'teacher') {
+    header("Location: ../frontend/login.php");
+    exit();
+}
+
+$role = ucfirst($_SESSION['role']) ?? 'Unknown'; 
 $profile_picture = $_SESSION['profile_picture'] ?? '../assets/images/Default-PFP.jpg';
 
-// Array of random messages
 $messages = [
     "How are you doing? Ready to get home safely?",
     "Hope you had a great day! Stay safe on your way home!",
@@ -32,32 +32,7 @@ $messages = [
     "Another day, another step closer to your goals!"
 ];
 
-// Pick a single random message
 $random_message = $messages[array_rand($messages)];
-?>
-
-<!-- Role Message -->
-<?php
-$roleMessage = "You are logged in as an Admin."; // Default to Admin
-
-if (isset($_SESSION['role'])) {
-    switch ($_SESSION['role']) {
-        case 'student':
-            $roleMessage = "You are logged in as a Student.";
-            break;
-        case 'driver':
-            $roleMessage = "You are logged in as a Driver.";
-            break;
-        case 'teacher':
-            $roleMessage = "You are logged in as a Teacher.";
-            break;
-        case 'admin':
-            $roleMessage = "You are logged in as an Admin.";
-            break;
-        default:
-            $roleMessage = "You are logged in with an unknown role.";
-    }
-}
 ?>
 
 <!DOCTYPE html>
@@ -66,11 +41,7 @@ if (isset($_SESSION['role'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>School Bus System - Dashboard</title>
-
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="assets/css/style.css">
 
     <style>
@@ -121,6 +92,15 @@ if (isset($_SESSION['role'])) {
             border-radius: 50%;
             object-fit: cover;
         }
+        .role-badge {
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 15px;
+            margin-right: 15px;
+        }
         .sidebar {
             width: 250px;
             background: #004aad;
@@ -129,7 +109,7 @@ if (isset($_SESSION['role'])) {
             height: 100vh;
             position: fixed;
             left: 0;
-            top: 10;
+            top: 20;
         }
         .sidebar ul {
             list-style: none;
@@ -152,9 +132,10 @@ if (isset($_SESSION['role'])) {
         .content {
             margin-left: 260px;
             padding: 20px;
+            text-align: center;
         }
         .message-box {
-            margin-top: 10px;
+            margin: 10px auto;
             padding: 15px;
             background: rgba(255, 255, 255, 0.85);
             border-radius: 8px;
@@ -166,7 +147,6 @@ if (isset($_SESSION['role'])) {
 </head>
 <body>
 
-<!-- Navigation Bar -->
 <nav class="navbar navbar-expand-lg navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="http://localhost/school_bus_system/index.php">
@@ -176,13 +156,10 @@ if (isset($_SESSION['role'])) {
         <div class="ms-auto nav-icons">
             <div class="dropdown">
                 <button class="btn btn-secondary dropdown-toggle nav-profile" type="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    <span><?php echo htmlspecialchars($full_name); ?></span>
                     <img src="<?php echo htmlspecialchars($profile_picture); ?>" alt="Profile Picture">
+                    <span class="role-badge"><?php echo htmlspecialchars($role); ?></span> <!-- Add user role here -->
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
-                    <li><a class="dropdown-item" href="dashboard.php">Dashboard</a></li>
-                    <li><a class="dropdown-item" href="profile.php">Profile</a></li>
-                    <li><a class="dropdown-item" href="settings.php">Settings</a></li>
                     <li><a class="dropdown-item text-danger" href="../php/backend/logout.php">Logout</a></li>
                 </ul>
             </div>
@@ -190,31 +167,21 @@ if (isset($_SESSION['role'])) {
     </div>
 </nav>
 
-<!-- Sidebar -->
 <div class="sidebar">
     <ul>
         <li><a href="dashboard.php">Dashboard</a></li>
-        <li><a href="index.php">Site Home</a></li>
-        <li><a href="../dashboard/lobbies.php">Lobby</a></li>
     </ul>
 </div>
 
-<!-- Content -->
 <div class="content">
-    <h1>Welcome, <strong><?php echo htmlspecialchars($full_name); ?>!</strong></h1>
+    <h1>Welcome, <strong><?php echo htmlspecialchars($role); ?>!</strong></h1> 
+    <p style="font-size: 18px; color: #333; font-weight: bold;">You are logged in as a <?php echo htmlspecialchars($role); ?>.</p>
 
-    <p style="font-size: 18px; color: #333; font-weight: bold;"><?php echo $roleMessage; ?></p>
-
-    <!-- Randomized Message -->
     <div class="message-box">
         <p><?php echo $random_message; ?></p>
     </div>
 </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script>
-</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
