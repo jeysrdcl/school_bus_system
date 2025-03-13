@@ -2,6 +2,8 @@
 include '../../php/backend/session.php';
 include '../../php/backend/db_connect.php';
 
+$system = "/school_bus_system//";
+$directory = $_SERVER['DOCUMENT_ROOT'] . $system;
 // Start session only if it's not already active
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
@@ -123,6 +125,8 @@ try {
 </head>
 <body>
 
+
+
 <!-- Navigation Bar -->
 <nav class="navbar navbar-expand-lg navbar-dark">
     <div class="container-fluid">
@@ -144,16 +148,7 @@ try {
     </div>
 </nav>
 
-<!-- Sidebar -->
-<div class="sidebar">
-    <ul>
-        <li><a href="admin_dashboard.php">Dashboard</a></li>
-        <li><a href="users.php" class="active">Users</a></li>
-        <li><a href="lobby.php">Lobby</a></li>
-        <li><a href="reports.php">Reports</a></li>
-        <li><a href="data_logs.php">Data Logs</a></li>
-    </ul>
-</div>
+<?php include $directory . '/php/frontend/sidebar_component.php'; ?>
 
 <!-- Content -->
 <div class="content">
