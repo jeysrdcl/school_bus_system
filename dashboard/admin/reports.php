@@ -25,6 +25,18 @@ $profile_picture = htmlspecialchars($_SESSION['profile_picture'] ?? '../../asset
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
+
+    <link
+        href="https://cdn.datatables.net/v/bs5/jq-3.7.0/moment-2.29.4/dt-2.2.2/date-1.5.5/r-3.0.4/sb-1.8.2/sp-2.3.3/datatables.min.css"
+        rel="stylesheet" integrity="sha384-/HwaWptfOygZKMBfjY8n5Sk94Nqmms5dCNWe9ySl/4hM75Mx2YwBq40pEkIjNWFp"
+        crossorigin="anonymous">
+
+    <script
+        src="https://cdn.datatables.net/v/bs5/jq-3.7.0/moment-2.29.4/dt-2.2.2/date-1.5.5/r-3.0.4/sb-1.8.2/sp-2.3.3/datatables.min.js"
+        integrity="sha384-SYy9+aLWMaFclBhWX6F18dkIP5d3HC5YsY7t2AD88GZaOlisQqXiwMlbRa08ejOP"
+        crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.2/moment.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
