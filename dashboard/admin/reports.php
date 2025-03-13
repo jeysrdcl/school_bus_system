@@ -7,7 +7,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     exit();
 }
 
-
 $system = "/school_bus_system/";
 $directory = $_SERVER['DOCUMENT_ROOT'] . $system;
 
