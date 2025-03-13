@@ -6,6 +6,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header("Refresh:2; url=../../frontend/login.php");
     exit();
 }
+$system = "/school_bus_system//";
+$directory = $_SERVER['DOCUMENT_ROOT'] . $system;
 
 $role = ucfirst($_SESSION['role']) ?? 'Admin';
 $profile_picture = htmlspecialchars($_SESSION['profile_picture'] ?? '../../assets/images/Default-PFP.jpg');
@@ -176,14 +178,7 @@ $profile_picture = htmlspecialchars($_SESSION['profile_picture'] ?? '../../asset
         </div>
     </nav>
 
-    <div class="sidebar">
-        <ul>
-            <li><a href="admin_dashboard.php"><i class="fas fa-home"></i> Dashboard</a></li>
-            <li><a href="reports.php"><i class="fas fa-chart-line"></i> Reports</a></li>
-            <li><a href="data_logs.php"><i class="fas fa-database"></i> Data Logs</a></li>
-            <li><a href="bus_inventory.php"><i class="fas fa-bus"></i> Bus Inventory</a></li>
-        </ul>
-    </div>
+<?php include $directory . '/php/frontend/sidebar_component.php'; ?>
 
     <div class="content">
         <h1>Bus Inventory</h1>
@@ -191,6 +186,8 @@ $profile_picture = htmlspecialchars($_SESSION['profile_picture'] ?? '../../asset
         <div class="message-box">
             <p style="color: #000 !important;">This is where bus inventory will be displayed.</p>
         </div>
+
+        <?php include $directory . '/php/frontend/add_bus_form.php'; ?>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
