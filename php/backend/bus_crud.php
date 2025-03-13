@@ -16,11 +16,11 @@ $endpoint = trim($endpoint, "/");
 switch ($method) {
     case 'POST':
         if ($endpoint == 'buses/create') {
-            $required_fields = ['bus_name', 'plate_number', 'bus_type', 'capacity', 'max_capacity', 'status'];
+            $required_fields = ['bus_name', 'plate_number', 'bus_type', 'capacity', 'max_capacity'];
             // $sample = ['bus_name' => 'BUS C', 'plate_number' => 'XTVY-4567', 'bus_type' => 'Mini Bus', 'capacity' => 20, 'max_capacity' => 30];
             if (!array_diff_key(array_flip($required_fields), $_POST)) {
                 if (!checkPlateNumber($conn, $_POST['plate_number'])) {
-                    $stmt = $conn->prepare('INSERT INTO bus_table (bus_name, plate_number, bus_type, capacity, max_capacity, status) VALUES (:bus_name, :plate_number, :bus_type, :capacity, :max_capacity, :status)');
+                    $stmt = $conn->prepare("INSERT INTO bus_table (bus_name, plate_number, bus_type, capacity, max_capacity, status) VALUES (:bus_name, :plate_number, :bus_type, :capacity, :max_capacity, 'ACTIVE')");
                     try {
                         if ($stmt->execute($_POST)) {
                             $result = fetchBusses($conn, ['plate_number' => $_POST['plate_number']]);

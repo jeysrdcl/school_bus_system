@@ -1,6 +1,8 @@
 <?php
 include '../../php/backend/session.php';
 
+$system = "/school_bus_system//";
+$directory = $_SERVER['DOCUMENT_ROOT'] . $system;
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
@@ -195,14 +197,7 @@ $random_message = $messages[array_rand($messages)];
         </div>
     </nav>
 
-    <div class="sidebar">
-        <ul>
-            <li><a href="admin_dashboard.php"><i class="fas fa-home"></i> Dashboard</a></li>
-            <li><a href="reports.php"><i class="fas fa-chart-line"></i> Reports</a></li>
-            <li><a href="data_logs.php"><i class="fas fa-database"></i> Data Logs</a></li>
-            <li><a href="bus_inventory.php"><i class="fas fa-bus"></i> Bus Inventory</a></li>
-        </ul>
-    </div>
+<?php include $directory .'/php/frontend/sidebar_component.php'; ?>
 
     <div class="content">
         <h1>Welcome, <strong><?php echo $role; ?>!</strong></h1>
