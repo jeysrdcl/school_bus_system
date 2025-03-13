@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         $stmt = $conn->prepare("SELECT id, email FROM users WHERE email = :email");
-        $stmt->bindParam(':email', $email);
+        $stmt->bindParam(':email', $email, PDO::PARAM_STR);
         $stmt->execute();
 
         if ($stmt->rowCount() > 0) {
@@ -30,13 +30,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $token = bin2hex(random_bytes(25));
             $hashed_token = password_hash($token, PASSWORD_DEFAULT);
-            $expiry = time() + 300;
+            $expiry = date('Y-m-d H:i:s', strtotime('+5 minutes'));
 
-            $insert_stmt = $conn->prepare("INSERT INTO password_resets (user_id, email, token, expiry) VALUES (:user_id, :email, :token, :expiry)");
-            $insert_stmt->bindParam(':user_id', $user_id);
-            $insert_stmt->bindParam(':email', $email);
-            $insert_stmt->bindParam(':token', $hashed_token);
-            $insert_stmt->bindParam(':expiry', $expiry);
+            $insert_stmt = $conn->prepare("
+                INSERT INTO password_resets (user_id, email, token, expiry) 
+                VALUES (:user_id, :email, :token, :expiry)
+            ");
+            $insert_stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+            $insert_stmt->bindParam(':email', $email, PDO::PARAM_STR);
+            $insert_stmt->bindParam(':token', $hashed_token, PDO::PARAM_STR);
+            $insert_stmt->bindParam(':expiry', $expiry, PDO::PARAM_STR);
 
             if ($insert_stmt->execute()) {
                 $mail = new PHPMailer(true);
@@ -49,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                     $mail->Port = 587;
 
-                    $mail->setFrom('etrack.au@gmail.com', 'E-Track System');
+                    $mail->setFrom('etrack.au@gmail.com', 'MonJeep System');
                     $mail->addAddress($email);
 
                     $resetLink = 'http://localhost/school_bus_system/php/frontend/reset_password.php?email=' . urlencode($email) . '&token=' . urlencode($token);
@@ -72,12 +75,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             .container { 
                                 width: 100%; 
                                 max-width: 600px; 
-                                margin: 20px 0; /* Removes auto centering */
+                                margin: 20px 0; 
                                 padding: 20px; 
                                 border: 1px solid #ddd; 
                                 border-radius: 10px; 
                                 background: #f9f9f9;
-                                text-align: left; /* Ensures left alignment */
+                                text-align: left; 
                             }
                             .button-container { margin-top: 20px; }
                             .button {
@@ -113,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['success'] = "Password reset link sent to your email.";
                     $show_form = false;
                 } catch (Exception $e) {
-                    $_SESSION['error'] = "Email could not be sent.";
+                    $_SESSION['error'] = "Email could not be sent. Error: " . $e->getMessage();
                 }
             } else {
                 $_SESSION['error'] = "Error generating password reset link.";
@@ -121,8 +124,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $_SESSION['error'] = "No account found with that email.";
             $_SESSION['input_value'] = $email;
-            header("Location: forgot_password.php");
-            exit();
         }
     } catch (PDOException $e) {
         $_SESSION['error'] = "Database error: " . $e->getMessage();
@@ -194,7 +195,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="overlay"></div>
     <div class="container mt-5">
         <div class="text-center">
-            <img src="../../assets/images/AU-logo.png" alt="AU Logo" width="150">
+            <img src="../../assets/images/AU-logo.png" alt="Arellano University Logo" width="115">
             <h2 class="header">Password Reset</h2>
             <p class="form-text">Provide your email to recover your password.</p>
         </div>
@@ -219,4 +220,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 </body>
-</html>
+</html

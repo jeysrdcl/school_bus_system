@@ -88,7 +88,7 @@ $random_signup_message = $signup_messages[array_rand($signup_messages)];
     <div class="overlay"></div>
     <div class="container">
         <div class="text-center">
-            <img src="../../assets/images/AU-logo.png" alt="AU Logo" class="logo">
+            <img src="../../assets/images/AU-logo.png" alt="Arellano University Logo" width="115">
             <h2 class="signup-header">Create an Account</h2>
             <h2 class="signup-description"><?php echo $random_signup_message; ?></h2>
         </div>

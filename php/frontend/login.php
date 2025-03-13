@@ -6,6 +6,11 @@ if (isset($_SESSION['user_id'])) {
     exit();
 }
 
+if (isset($_SESSION['error'])) {
+    echo '<div class="alert alert-danger">' . $_SESSION['error'] . '</div>';
+    unset($_SESSION['error']);
+}
+
 $welcomeMessages = [
     "Hi, Welcome Back! 👋",
     "Good to see you again! 😊",
@@ -79,9 +84,13 @@ $randomMessage = $welcomeMessages[array_rand($welcomeMessages)];
     <div class="overlay"></div>
     <div class="container mt-5">
         <div class="text-center">
-            <img src="../../assets/images/AU-logo.png" alt="Arellano University Logo" width="150">
+            <img src="../../assets/images/AU-logo.png" alt="Arellano University Logo" width="115">
             <h2 class="login-header">Login</h2>
             <h2 class="login-description"><?php echo $randomMessage; ?></h2>
+
+            <?php if (isset($_SESSION['success'])): ?>
+                <div class="alert alert-success mt-3"><?php echo $_SESSION['success']; unset($_SESSION['success']); ?></div>
+            <?php endif; ?>
         </div>
 
         <?php if (isset($_SESSION['error'])): ?>

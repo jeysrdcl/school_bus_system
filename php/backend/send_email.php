@@ -1,4 +1,5 @@
 <?php
+session_start();
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -7,26 +8,29 @@ include '../backend/db_connect.php';
 
 try {
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
-        $userEmail = trim($_POST['email']);
+        $userEmail = trim($_POST['email'] ?? '');
 
         if (empty($userEmail) || !filter_var($userEmail, FILTER_VALIDATE_EMAIL)) {
-            echo "Invalid email address.";
+            $_SESSION['error'] = "Invalid email address.";
+            header("Location: forgot_password.php");
             exit();
         }
 
-        $stmt = $conn->prepare("SELECT id, role FROM users WHERE email = :email");
+        $stmt = $conn->prepare("SELECT id FROM users WHERE email = :email");
         $stmt->bindParam(":email", $userEmail, PDO::PARAM_STR);
         $stmt->execute();
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$user) {
-            echo "Email not found.";
+            $_SESSION['error'] = "No account found with that email.";
+            header("Location: forgot_password.php");
             exit();
         }
 
         $userId = $user['id'];
 
         $resetToken = bin2hex(random_bytes(32));
+        $hashedToken = password_hash($resetToken, PASSWORD_BCRYPT);
         $expiry = date('Y-m-d H:i:s', strtotime('+5 minutes'));
 
         $stmt = $conn->prepare("SELECT id FROM password_resets WHERE user_id = :user_id");
@@ -42,27 +46,28 @@ try {
         }
 
         $stmt->bindParam(":user_id", $userId, PDO::PARAM_INT);
-        $stmt->bindParam(":token", $resetToken, PDO::PARAM_STR);
+        $stmt->bindParam(":token", $hashedToken, PDO::PARAM_STR);
         $stmt->bindParam(":expiry", $expiry, PDO::PARAM_STR);
 
         if (!$stmt->execute()) {
-            echo "Failed to store reset token.";
+            $_SESSION['error'] = "Failed to store reset token.";
+            header("Location: forgot_password.php");
             exit();
         }
 
-        $resetLink = "http://localhost/school_bus_system/php/frontend/reset_password.php?token=" . urlencode($resetToken);
+        $resetLink = 'http://localhost/school_bus_system/php/frontend/reset_password.php?email=' . urlencode($userEmail) . '&token=' . urlencode($resetToken);
 
         $mail = new PHPMailer(true);
-
         try {
             $mail->isSMTP();
             $mail->Host = 'smtp.gmail.com';
             $mail->SMTPAuth = true;
             $mail->Username = 'etrack.au@gmail.com'; 
             $mail->Password = getenv('SMTP_PASSWORD');
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; 
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port = 587;
-            $mail->setFrom('etrack.au@gmail.com', 'E-Track System');
+
+            $mail->setFrom('etrack.au@gmail.com', 'MonJeep System');
             $mail->addAddress($userEmail);
 
             $mail->isHTML(true);
@@ -83,12 +88,12 @@ try {
                     .container { 
                         width: 100%; 
                         max-width: 600px; 
-                        margin: 20px 0; /* Removes auto centering */
+                        margin: 20px 0; 
                         padding: 20px; 
                         border: 1px solid #ddd; 
                         border-radius: 10px; 
                         background: #f9f9f9;
-                        text-align: left; /* Ensures left alignment */
+                        text-align: left; 
                     }
                     .button-container { margin-top: 20px; }
                     .button {
@@ -121,19 +126,25 @@ try {
             </html>";
 
             if ($mail->send()) {
-                header('Location: forgot_password.php?success=1');
+                $_SESSION['success'] = "Password reset link sent to your email.";
+                header("Location: forgot_password.php");
                 exit();
             } else {
-                echo "Failed to send email.";
+                $_SESSION['error'] = "Failed to send email.";
+                header("Location: forgot_password.php");
+                exit();
             }
-
         } catch (Exception $e) {
-            error_log("Email sending error: " . $mail->ErrorInfo);
-            echo "Email could not be sent. Please try again later.";
+            error_log("Email sending error: " . $e->getMessage());
+            $_SESSION['error'] = "Email could not be sent. Please try again later.";
+            header("Location: forgot_password.php");
+            exit();
         }
     }
 } catch (Exception $e) {
     error_log("Database error: " . $e->getMessage());
-    echo "An error occurred. Please try again.";
+    $_SESSION['error'] = "An error occurred. Please try again.";
+    header("Location: forgot_password.php");
+    exit();
 }
 ?>

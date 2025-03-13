@@ -3,27 +3,43 @@ session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-require_once __DIR__ . "/../backend/db_connect.php"; // Ensure correct path
+require_once __DIR__ . "/../backend/db_connect.php";
 
-// Check if token is provided
-if (!isset($_GET['token']) || empty($_GET['token'])) {
+// Validate token and email parameters
+if (!isset($_GET['token']) || empty($_GET['token']) || !isset($_GET['email']) || empty($_GET['email'])) {
     $_SESSION['error'] = "Invalid or expired token, please request a new one.";
     header("Location: forgot_password.php");
     exit();
 }
 
 $token = trim($_GET['token']);
+$email = trim($_GET['email']);
 
-// Check if token exists in the database
-$stmt = $conn->prepare("SELECT * FROM password_resets WHERE token = :token");
-$stmt->bindParam(":token", $token, PDO::PARAM_STR);
+// Debug: Log token and email from URL
+error_log("Token from URL: " . $token);
+error_log("Email from URL: " . $email);
+
+// Fetch token details from the database
+$stmt = $conn->prepare("
+    SELECT pr.token, pr.expiry 
+    FROM password_resets pr
+    INNER JOIN users u ON pr.email = u.email
+    WHERE u.email = :email
+");
+$stmt->bindParam(":email", $email, PDO::PARAM_STR);
 $stmt->execute();
 $reset = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// If token is invalid or expired, delete it and redirect
-if (!$reset || strtotime($reset['expiry']) < time()) {
+// Debug: Log fetched reset data
+error_log("Fetched reset data: " . print_r($reset, true));
+
+// Verify token using password_verify()
+if (!$reset || !password_verify($token, $reset['token'])) {
+    error_log("Token verification failed. Token from URL: " . $token . ", Hashed token from DB: " . $reset['token']);
+
+    // Delete the invalid token
     $delete_token = $conn->prepare("DELETE FROM password_resets WHERE token = :token");
-    $delete_token->bindParam(':token', $token, PDO::PARAM_STR);
+    $delete_token->bindParam(':token', $reset['token'], PDO::PARAM_STR);
     $delete_token->execute();
 
     $_SESSION['error'] = "Invalid or expired token, please request a new one.";
@@ -31,10 +47,33 @@ if (!$reset || strtotime($reset['expiry']) < time()) {
     exit();
 }
 
-$email = $reset['email']; // Store email for later use
+// Check if the token has expired
+if (strtotime($reset['expiry']) < time()) {
+    error_log("Token expired. Expiry: " . $reset['expiry'] . ", Current time: " . time());
+
+    // Delete the expired token
+    $delete_token = $conn->prepare("DELETE FROM password_resets WHERE token = :token");
+    $delete_token->bindParam(':token', $reset['token'], PDO::PARAM_STR);
+    $delete_token->execute();
+
+    $_SESSION['error'] = "Your password reset link has expired. Please request a new one.";
+    header("Location: forgot_password.php");
+    exit();
+}
+
+// Generate CSRF token for form submission
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 
 // Handle password reset form submission
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        $_SESSION['error'] = "Invalid CSRF token.";
+        header("Location: reset_password.php?token=" . urlencode($token) . "&email=" . urlencode($email));
+        exit();
+    }
+
     $new_password = trim($_POST['new_password'] ?? '');
     $confirm_password = trim($_POST['confirm_password'] ?? '');
 
@@ -46,9 +85,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     } elseif (strlen($new_password) < 8) {
         $_SESSION['error'] = "Password must be at least 8 characters.";
     } else {
+        // Hash the new password
         $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
 
-        // Update password in the users table
+        // Update the user's password in the database
         $update = $conn->prepare("UPDATE users SET password = :password WHERE email = :email");
         $update->bindParam(':password', $hashed_password, PDO::PARAM_STR);
         $update->bindParam(':email', $email, PDO::PARAM_STR);
@@ -57,9 +97,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if ($update->rowCount() > 0) {
             // Delete the used token
             $delete_token = $conn->prepare("DELETE FROM password_resets WHERE token = :token");
-            $delete_token->bindParam(':token', $token, PDO::PARAM_STR);
+            $delete_token->bindParam(':token', $reset['token'], PDO::PARAM_STR);
             $delete_token->execute();
 
+            // Set success message and redirect to login.php
             $_SESSION['success'] = "Your password has been reset successfully!";
             header("Location: login.php");
             exit();
@@ -68,7 +109,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 
-    header("Location: reset_password.php?token=" . urlencode($token));
+    // Redirect back to the reset password page with error messages
+    header("Location: reset_password.php?token=" . urlencode($token) . "&email=" . urlencode($email));
     exit();
 }
 ?>
@@ -111,14 +153,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         .form-label {
             font-weight: bold;
         }
-        .toggle-password {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            color: #555;
-        }
         .alert {
             padding: 10px;
             margin-bottom: 15px;
@@ -141,13 +175,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         .text-link:hover {
             text-decoration: underline;
         }
+        .input-group .btn {
+            border-radius: 0;
+            border-left: none;
+        }
     </style>
 </head>
 <body>
     <div class="overlay"></div>
     <div class="container">
         <div class="text-center">
-            <img src="../../assets/images/AU-logo.png" alt="Arellano University Logo" width="150">
+            <img src="../../assets/images/AU-logo.png" alt="Arellano University Logo" width="115">
             <h3 class="mt-3 fw-bold">Reset Your Password</h3>
             <p class="form-text">Please create a new password.</p>
         </div>
@@ -156,24 +194,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <div class="alert alert-danger"><?php echo $_SESSION['error']; unset($_SESSION['error']); ?></div>
         <?php endif; ?>
 
-        <?php if (isset($_SESSION['success'])): ?>
-            <div class="alert alert-success"><?php echo $_SESSION['success']; unset($_SESSION['success']); ?></div>
-        <?php endif; ?>
-
         <form action="" method="POST">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
             <input type="hidden" name="token" value="<?php echo htmlspecialchars($token); ?>">
 
             <div class="mb-3 input-group">
                 <input type="password" name="new_password" id="new_password" class="form-control" placeholder="Enter new password" required>
-                <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('new_password', 'eyeIcon1')">
-                    <i id="eyeIcon1" class="bi bi-eye"></i>
+                <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('new_password', 'eyeIconNew')">
+                    <i id="eyeIconNew" class="bi bi-eye"></i>
                 </button>
             </div>
 
             <div class="mb-3 input-group">
                 <input type="password" name="confirm_password" id="confirm_password" class="form-control" placeholder="Confirm new password" required>
-                <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('confirm_password', 'eyeIcon2')">
-                    <i id="eyeIcon2" class="bi bi-eye"></i>
+                <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('confirm_password', 'eyeIconConfirm')">
+                    <i id="eyeIconConfirm" class="bi bi-eye"></i>
                 </button>
             </div>
 
@@ -184,5 +219,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <a href="login.php" class="text-link"><i class="bi bi-arrow-left"></i> Back to Login</a>
         </div>
     </div>
+
+    <script>
+        // JavaScript function to toggle password visibility
+        function togglePassword(inputId, eyeIconId) {
+            const input = document.getElementById(inputId);
+            const eyeIcon = document.getElementById(eyeIconId);
+
+            if (input.type === "password") {
+                input.type = "text";
+                eyeIcon.classList.replace("bi-eye", "bi-eye-slash");
+            } else {
+                input.type = "password";
+                eyeIcon.classList.replace("bi-eye-slash", "bi-eye");
+            }
+        }
+    </script>
 </body>
 </html>
