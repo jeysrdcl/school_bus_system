@@ -16,6 +16,9 @@ if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'teacher') {
     exit();
 }
 
+$system = "/school_bus_system/";
+$directory = $_SERVER['DOCUMENT_ROOT'] . $system;
+
 $role = ucfirst($_SESSION['role']) ?? 'Unknown';
 $profile_picture = $_SESSION['profile_picture'] ?? '../assets/images/Default-PFP.jpg';
 
@@ -37,6 +40,7 @@ $random_message = $messages[array_rand($messages)];
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -44,6 +48,18 @@ $random_message = $messages[array_rand($messages)];
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
+
+    <link
+        href="https://cdn.datatables.net/v/bs5/jq-3.7.0/moment-2.29.4/dt-2.2.2/date-1.5.5/r-3.0.4/sb-1.8.2/sp-2.3.3/datatables.min.css"
+        rel="stylesheet" integrity="sha384-/HwaWptfOygZKMBfjY8n5Sk94Nqmms5dCNWe9ySl/4hM75Mx2YwBq40pEkIjNWFp"
+        crossorigin="anonymous">
+
+    <script
+        src="https://cdn.datatables.net/v/bs5/jq-3.7.0/moment-2.29.4/dt-2.2.2/date-1.5.5/r-3.0.4/sb-1.8.2/sp-2.3.3/datatables.min.js"
+        integrity="sha384-SYy9+aLWMaFclBhWX6F18dkIP5d3HC5YsY7t2AD88GZaOlisQqXiwMlbRa08ejOP"
+        crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.2/moment.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -54,55 +70,65 @@ $random_message = $messages[array_rand($messages)];
             position: relative;
             overflow: hidden;
         }
+
         .overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, rgba(0, 86, 179, 0.8), rgba(0, 86, 179, 0.5)); 
-            backdrop-filter: blur(5px); 
+            background: linear-gradient(135deg, rgba(0, 86, 179, 0.8), rgba(0, 86, 179, 0.5));
+            backdrop-filter: blur(5px);
             z-index: -1;
         }
+
         .navbar {
             background-color: rgba(0, 86, 179, 0.95) !important;
         }
+
         .navbar-brand {
             font-size: 1.8rem;
             font-weight: bold;
             display: flex;
             align-items: center;
         }
+
         .navbar-brand img {
             height: 60px;
             margin-right: 10px;
         }
+
         .navbar-nav .nav-link {
             color: white !important;
             font-size: 1.1rem;
         }
+
         .nav-icons {
             display: flex;
             align-items: center;
             gap: 15px;
         }
+
         .nav-icons i {
             font-size: 1.4rem;
             color: white;
             cursor: pointer;
             position: relative;
         }
+
         .nav-profile {
             display: flex;
             align-items: center;
             gap: 10px;
         }
+
         .nav-profile img {
             width: 40px;
             height: 40px;
             border-radius: 50%;
             object-fit: cover;
         }
+
         .role-badge {
             font-size: 16px;
             font-weight: bold;
@@ -112,25 +138,29 @@ $random_message = $messages[array_rand($messages)];
             border-radius: 15px;
             margin-right: 15px;
         }
+
         .sidebar {
             width: 250px;
-            background: rgba(0, 74, 173, 0.9); 
+            background: rgba(0, 74, 173, 0.9);
             padding: 20px;
             padding-top: 10px;
             height: 100vh;
             position: fixed;
             left: 0;
             top: 20;
-            backdrop-filter: blur(5px); 
+            backdrop-filter: blur(5px);
         }
+
         .sidebar ul {
             list-style: none;
             padding: 0;
         }
+
         .sidebar ul li {
             padding: 10px;
             font-size: 1.2rem;
         }
+
         .sidebar ul li a {
             color: white;
             text-decoration: none;
@@ -139,9 +169,11 @@ $random_message = $messages[array_rand($messages)];
             border-radius: 5px;
             transition: background 0.3s ease;
         }
+
         .sidebar ul li a:hover {
-            background: rgba(255, 255, 255, 0.1); 
+            background: rgba(255, 255, 255, 0.1);
         }
+
         .content {
             margin-left: 260px;
             padding: 20px;
@@ -149,34 +181,46 @@ $random_message = $messages[array_rand($messages)];
             position: relative;
             z-index: 1;
         }
+
         .message-box {
             margin: 10px auto;
             padding: 20px;
-            background: rgba(255, 255, 255, 0.95); 
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 12px;
             max-width: 600px;
             font-size: 20px;
-            color: #000 !important; 
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); 
-            animation: fadeIn 1s ease-in-out; 
-            border: 1px solid rgba(0, 0, 0, 0.1); 
+            color: #000 !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 1s ease-in-out;
+            border: 1px solid rgba(0, 0, 0, 0.1);
         }
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         h1 {
             font-size: 2.5rem;
-            color: #fff; 
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); 
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
+
         p {
             font-size: 1.2rem;
-            color: #fff; 
+            color: #fff;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
         }
     </style>
 </head>
+
 <body>
     <div class="overlay"></div>
 
@@ -188,7 +232,8 @@ $random_message = $messages[array_rand($messages)];
             </a>
             <div class="ms-auto nav-icons">
                 <div class="dropdown">
-                    <button class="btn btn-secondary dropdown-toggle nav-profile" type="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="btn btn-secondary dropdown-toggle nav-profile" type="button" id="profileDropdown"
+                        data-bs-toggle="dropdown" aria-expanded="false">
                         <img src="<?php echo $profile_picture; ?>" alt="Profile Picture">
                         <span class="role-badge"><?php echo $role; ?></span>
                     </button>
@@ -209,11 +254,19 @@ $random_message = $messages[array_rand($messages)];
     <div class="content">
         <h1>Welcome, <strong><?php echo $role; ?>!</strong></h1>
         <p style="font-size: 18px; color: #fff; font-weight: bold;">You are logged in as a <?php echo $role; ?>.</p>
-        <div class="message-box">
+        <div class="message-box mb-5">
             <p style="color: #000 !important;"><?php echo $random_message; ?></p>
         </div>
+
+
+        <div class="container">
+            <?php include $directory . 'php/frontend/observer_components/select_bus_form.php'; ?>
+
+        </div>
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
