@@ -5,7 +5,6 @@ ini_set('display_errors', 1);
 
 require_once __DIR__ . "/../backend/db_connect.php";
 
-// Validate token and email parameters
 if (!isset($_GET['token']) || empty($_GET['token']) || !isset($_GET['email']) || empty($_GET['email'])) {
     $_SESSION['error'] = "Invalid or expired token, please request a new one.";
     header("Location: forgot_password.php");
@@ -15,11 +14,9 @@ if (!isset($_GET['token']) || empty($_GET['token']) || !isset($_GET['email']) ||
 $token = trim($_GET['token']);
 $email = trim($_GET['email']);
 
-// Debug: Log token and email from URL
 error_log("Token from URL: " . $token);
 error_log("Email from URL: " . $email);
 
-// Fetch token details from the database
 $stmt = $conn->prepare("
     SELECT pr.token, pr.expiry 
     FROM password_resets pr
@@ -30,14 +27,11 @@ $stmt->bindParam(":email", $email, PDO::PARAM_STR);
 $stmt->execute();
 $reset = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// Debug: Log fetched reset data
 error_log("Fetched reset data: " . print_r($reset, true));
 
-// Verify token using password_verify()
 if (!$reset || !password_verify($token, $reset['token'])) {
     error_log("Token verification failed. Token from URL: " . $token . ", Hashed token from DB: " . $reset['token']);
 
-    // Delete the invalid token
     $delete_token = $conn->prepare("DELETE FROM password_resets WHERE token = :token");
     $delete_token->bindParam(':token', $reset['token'], PDO::PARAM_STR);
     $delete_token->execute();
@@ -47,11 +41,9 @@ if (!$reset || !password_verify($token, $reset['token'])) {
     exit();
 }
 
-// Check if the token has expired
 if (strtotime($reset['expiry']) < time()) {
     error_log("Token expired. Expiry: " . $reset['expiry'] . ", Current time: " . time());
 
-    // Delete the expired token
     $delete_token = $conn->prepare("DELETE FROM password_resets WHERE token = :token");
     $delete_token->bindParam(':token', $reset['token'], PDO::PARAM_STR);
     $delete_token->execute();
@@ -61,12 +53,10 @@ if (strtotime($reset['expiry']) < time()) {
     exit();
 }
 
-// Generate CSRF token for form submission
 if (!isset($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-// Handle password reset form submission
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
         $_SESSION['error'] = "Invalid CSRF token.";
@@ -77,7 +67,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $new_password = trim($_POST['new_password'] ?? '');
     $confirm_password = trim($_POST['confirm_password'] ?? '');
 
-    // Validate password fields
     if (empty($new_password) || empty($confirm_password)) {
         $_SESSION['error'] = "All fields are required.";
     } elseif ($new_password !== $confirm_password) {
@@ -85,22 +74,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     } elseif (strlen($new_password) < 8) {
         $_SESSION['error'] = "Password must be at least 8 characters.";
     } else {
-        // Hash the new password
         $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
 
-        // Update the user's password in the database
         $update = $conn->prepare("UPDATE users SET password = :password WHERE email = :email");
         $update->bindParam(':password', $hashed_password, PDO::PARAM_STR);
         $update->bindParam(':email', $email, PDO::PARAM_STR);
         $update->execute();
 
         if ($update->rowCount() > 0) {
-            // Delete the used token
             $delete_token = $conn->prepare("DELETE FROM password_resets WHERE token = :token");
             $delete_token->bindParam(':token', $reset['token'], PDO::PARAM_STR);
             $delete_token->execute();
 
-            // Set success message and redirect to login.php
             $_SESSION['success'] = "Your password has been reset successfully!";
             header("Location: login.php");
             exit();
@@ -109,7 +94,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 
-    // Redirect back to the reset password page with error messages
     header("Location: reset_password.php?token=" . urlencode($token) . "&email=" . urlencode($email));
     exit();
 }
@@ -221,7 +205,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     </div>
 
     <script>
-        // JavaScript function to toggle password visibility
         function togglePassword(inputId, eyeIconId) {
             const input = document.getElementById(inputId);
             const eyeIcon = document.getElementById(eyeIconId);

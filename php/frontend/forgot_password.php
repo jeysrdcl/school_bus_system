@@ -195,7 +195,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="overlay"></div>
     <div class="container mt-5">
         <div class="text-center">
-            <img src="../../assets/images/AU-logo.png" alt="Arellano University Logo" width="115">
+                <img src="../../assets/images/AU-logo.png" alt="Arellano University Logo" width="115">
             <h2 class="header">Password Reset</h2>
             <p class="form-text">Provide your email to recover your password.</p>
         </div>

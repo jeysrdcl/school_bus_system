@@ -67,22 +67,22 @@ if (isset($_SESSION['user_id'])) {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start; /* Align content to the top */
+            justify-content: flex-start;
             text-align: center;
             color: white;
             background: rgba(0, 0, 0, 0.4);
             width: 100%;
-            padding-top: 100px; /* Increase this to move it higher */
+            padding-top: 100px;
         }
         .hero h1 {
             font-size: 3rem;
             font-weight: bold;
-            margin-bottom: 10px; /* Reduce space below heading */
+            margin-bottom: 10px;
         }
         .hero p {
             font-size: 1.2rem;
-            margin-bottom: 15px; /* Reduce space below paragraph */
-            margin-top: -10px; /* Move button slightly higher */
+            margin-bottom: 15px;
+            margin-top: -10px;
         }
         .btn-custom {
             font-size: 1.2rem;
@@ -155,7 +155,6 @@ if (isset($_SESSION['user_id'])) {
         </div>
     </nav>
 
-    <!-- Hero Section -->
     <section class="hero">
         <div class="container">
             <h1>Welcome to the E-Track System!</h1>
@@ -164,17 +163,14 @@ if (isset($_SESSION['user_id'])) {
         </div>
     </section>
 
-    <!-- About Section -->
     <section class="about" id="about">
         <h2>About Our System</h2>
         <p>The E-Track System is designed to provide secure and efficient student transport tracking. With real-time monitoring and easy access for parents, staff, and students, we aim to enhance safety and reliability in school transportation.</p>
     </section>
 
-    <!-- Footer Section -->
     <footer class="footer py-4">
         <div class="container">
             <div class="row">
-                <!-- Left Side: Logo, Address, Contact Info -->
                 <div class="col-md-6 d-flex align-items-start">
                     <div class="ms-3">
                         <h2>ARELLANO UNIVERSITY</h2>
@@ -192,7 +188,6 @@ if (isset($_SESSION['user_id'])) {
         </div>
     </footer>
 
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

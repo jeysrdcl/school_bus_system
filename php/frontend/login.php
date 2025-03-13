@@ -84,7 +84,7 @@ $randomMessage = $welcomeMessages[array_rand($welcomeMessages)];
     <div class="overlay"></div>
     <div class="container mt-5">
         <div class="text-center">
-            <img src="../../assets/images/AU-logo.png" alt="Arellano University Logo" width="115">
+            <img src="../../assets/images/AU-logo.png" alt="Arellano University Logo" width="115">  
             <h2 class="login-header">Login</h2>
             <h2 class="login-description"><?php echo $randomMessage; ?></h2>
 
