@@ -7,7 +7,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 if ($_SESSION['role'] === 'admin') {
-    header("Location: admin_dashboard.php");
+    header("Location: ../dashboard/admin/admin_dashboard.php");
     exit();
 }
 
@@ -16,6 +16,7 @@ if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'teacher') {
     exit();
 }
 
+$role = ucfirst($_SESSION['role']) ?? 'Unknown'; 
 $profile_picture = $_SESSION['profile_picture'] ?? '../assets/images/Default-PFP.jpg';
 
 $messages = [
@@ -32,12 +33,6 @@ $messages = [
 ];
 
 $random_message = $messages[array_rand($messages)];
-
-// Set correct role display
-$roleMessage = "You are logged in as a Teacher.";
-if ($_SESSION['role'] === 'admin') {
-    $roleMessage = "You are logged in as an Admin.";
-}
 ?>
 
 <!DOCTYPE html>
@@ -97,6 +92,15 @@ if ($_SESSION['role'] === 'admin') {
             border-radius: 50%;
             object-fit: cover;
         }
+        .role-badge {
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 15px;
+            margin-right: 15px;
+        }
         .sidebar {
             width: 250px;
             background: #004aad;
@@ -105,7 +109,7 @@ if ($_SESSION['role'] === 'admin') {
             height: 100vh;
             position: fixed;
             left: 0;
-            top: 10;
+            top: 20;
         }
         .sidebar ul {
             list-style: none;
@@ -153,6 +157,7 @@ if ($_SESSION['role'] === 'admin') {
             <div class="dropdown">
                 <button class="btn btn-secondary dropdown-toggle nav-profile" type="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                     <img src="<?php echo htmlspecialchars($profile_picture); ?>" alt="Profile Picture">
+                    <span class="role-badge"><?php echo htmlspecialchars($role); ?></span> <!-- Add user role here -->
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
                     <li><a class="dropdown-item text-danger" href="../php/backend/logout.php">Logout</a></li>
@@ -165,14 +170,12 @@ if ($_SESSION['role'] === 'admin') {
 <div class="sidebar">
     <ul>
         <li><a href="dashboard.php">Dashboard</a></li>
-        <li><a href="index.php">Site Home</a></li>
-        <li><a href="../dashboard/lobbies.php">Lobby</a></li>
     </ul>
 </div>
 
 <div class="content">
-    <h1>Welcome, <strong>Guest!</strong></h1> <!-- Removed full_name -->
-    <p style="font-size: 18px; color: #333; font-weight: bold;"><?php echo $roleMessage; ?></p>
+    <h1>Welcome, <strong><?php echo htmlspecialchars($role); ?>!</strong></h1> 
+    <p style="font-size: 18px; color: #333; font-weight: bold;">You are logged in as a <?php echo htmlspecialchars($role); ?>.</p>
 
     <div class="message-box">
         <p><?php echo $random_message; ?></p>
