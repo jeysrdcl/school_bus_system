@@ -1,34 +1,18 @@
 <?php
+session_start();
 
-
-include '../../php/backend/session.php';
-include '../../php/backend/db_connect.php';
-
-// Start session only if it's not already active
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
-
-$system = "/school_bus_system/";
-$directory = $_SERVER['DOCUMENT_ROOT'] . $system;
-// Check if user is logged in and is an admin
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header("Location: login.php");
+    echo "Unauthorized access. Redirecting...";
+    header("Refresh:2; url=../../frontend/login.php");
     exit();
 }
 
-// Access user details from the session
-$full_name = $_SESSION['full_name'] ?? 'Admin';
-$profile_picture = $_SESSION['profile_picture'] ?? '../../assets/images/Default-PFP.jpg';
 
-// Fetch users from the database using PDO
-try {
-    $stmt = $conn->prepare("SELECT id, full_name, email, role FROM users");
-    $stmt->execute();
-    $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    die("Query failed: " . $e->getMessage());
-}
+$system = "/school_bus_system/";
+$directory = $_SERVER['DOCUMENT_ROOT'] . $system;
+
+$role = ucfirst($_SESSION['role']) ?? 'Admin';
+$profile_picture = htmlspecialchars($_SESSION['profile_picture'] ?? '../../assets/images/Default-PFP.jpg');
 ?>
 
 <!DOCTYPE html>
@@ -38,12 +22,10 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reports</title>
-
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
-        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+
     <link
         href="https://cdn.datatables.net/v/bs5/jq-3.7.0/moment-2.29.4/dt-2.2.2/date-1.5.5/r-3.0.4/sb-1.8.2/sp-2.3.3/datatables.min.css"
         rel="stylesheet" integrity="sha384-/HwaWptfOygZKMBfjY8n5Sk94Nqmms5dCNWe9ySl/4hM75Mx2YwBq40pEkIjNWFp"
@@ -54,7 +36,7 @@ try {
         integrity="sha384-SYy9+aLWMaFclBhWX6F18dkIP5d3HC5YsY7t2AD88GZaOlisQqXiwMlbRa08ejOP"
         crossorigin="anonymous"></script>
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.2/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.2/moment.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -62,8 +44,19 @@ try {
             padding: 0;
             background: url('../../assets/images/AU-EEC.jpg') no-repeat center center fixed;
             background-size: cover;
-            background-color: #0056b3;
             position: relative;
+            overflow: hidden;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 86, 179, 0.8), rgba(0, 86, 179, 0.5));
+            backdrop-filter: blur(5px);
+            z-index: -1;
         }
 
         .navbar {
@@ -113,15 +106,26 @@ try {
             object-fit: cover;
         }
 
+        .role-badge {
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 15px;
+            margin-right: 15px;
+        }
+
         .sidebar {
             width: 250px;
-            background: #004aad;
+            background: rgba(0, 74, 173, 0.9);
             padding: 20px;
             padding-top: 10px;
             height: 100vh;
             position: fixed;
             left: 0;
-            top: 10;
+            top: 20;
+            backdrop-filter: blur(5px);
         }
 
         .sidebar ul {
@@ -140,35 +144,75 @@ try {
             display: block;
             padding: 10px;
             border-radius: 5px;
+            transition: background 0.3s ease;
         }
 
         .sidebar ul li a:hover {
-            background: #003380;
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .content {
             margin-left: 260px;
             padding: 20px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .message-box {
+            margin: 10px auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            max-width: 600px;
+            font-size: 20px;
+            color: #000 !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 1s ease-in-out;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        p {
+            font-size: 1.2rem;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
         }
     </style>
 </head>
 
 <body>
+    <div class="overlay"></div>
 
-    <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="http://localhost/school_bus_system/index.php">
-                <img src="../../assets/images/AU-logo.png" alt="AU Logo" height="50">
+                <img src="../../assets/images/AU-logo.png" alt="AU Logo">
                 Arellano University - Elisa Esguerra Campus
             </a>
-            <div class="ms-auto">
+            <div class="ms-auto nav-icons">
                 <div class="dropdown">
-                    <button class="btn btn-secondary dropdown-toggle" type="button" id="profileDropdown"
+                    <button class="btn btn-secondary dropdown-toggle nav-profile" type="button" id="profileDropdown"
                         data-bs-toggle="dropdown" aria-expanded="false">
-                        <span><?php echo htmlspecialchars($full_name); ?></span>
-                        <img src="<?php echo htmlspecialchars($profile_picture); ?>" alt="Profile Picture" width="40"
-                            height="40" class="rounded-circle">
+                        <img src="<?php echo $profile_picture; ?>" alt="Profile Picture">
+                        <span class="role-badge"><?php echo $role; ?></span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
                         <li><a class="dropdown-item text-danger" href="../../php/backend/logout.php">Logout</a></li>
@@ -180,8 +224,13 @@ try {
 
     <?php include $directory . '/php/frontend/sidebar_component.php'; ?>
 
-    <!-- Content -->
     <div class="content">
+        <h1>Reports</h1>
+        <p style="font-size: 18px; color: #fff; font-weight: bold;">View and manage system reports.</p>
+        <div class="message-box">
+            <p style="color: #000 !important;">This is where reports will be displayed.</p>
+        </div>
+
 
         <div class="container">
             <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
@@ -207,10 +256,10 @@ try {
             </div>
         </div>
 
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 
 </html>
