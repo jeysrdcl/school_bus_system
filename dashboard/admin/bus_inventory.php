@@ -22,6 +22,18 @@ $profile_picture = htmlspecialchars($_SESSION['profile_picture'] ?? '../../asset
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
+
+    <link
+        href="https://cdn.datatables.net/v/bs5/jq-3.7.0/moment-2.29.4/dt-2.2.2/date-1.5.5/r-3.0.4/sb-1.8.2/sp-2.3.3/datatables.min.css"
+        rel="stylesheet" integrity="sha384-/HwaWptfOygZKMBfjY8n5Sk94Nqmms5dCNWe9ySl/4hM75Mx2YwBq40pEkIjNWFp"
+        crossorigin="anonymous">
+
+    <script
+        src="https://cdn.datatables.net/v/bs5/jq-3.7.0/moment-2.29.4/dt-2.2.2/date-1.5.5/r-3.0.4/sb-1.8.2/sp-2.3.3/datatables.min.js"
+        integrity="sha384-SYy9+aLWMaFclBhWX6F18dkIP5d3HC5YsY7t2AD88GZaOlisQqXiwMlbRa08ejOP"
+        crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.2/moment.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -187,7 +199,29 @@ $profile_picture = htmlspecialchars($_SESSION['profile_picture'] ?? '../../asset
             <p style="color: #000 !important;">This is where bus inventory will be displayed.</p>
         </div>
 
-        <?php include $directory . '/php/frontend/add_bus_form.php'; ?>
+        <div class="container">
+            <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="pills-bus-inventory-tab" data-bs-toggle="pill"
+                        data-bs-target="#pills-bus-inventory" type="button" role="tab"
+                        aria-controls="pills-bus-inventory" aria-selected="true">Bus Inventory</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="pills-add-bus-tab" data-bs-toggle="pill"
+                        data-bs-target="#pills-add-bus" type="button" role="tab" aria-controls="pills-add-bus"
+                        aria-selected="false">Add Bus</button>
+                </li>
+            </ul>
+            <div class="tab-content" id="pills-tabContent">
+                <div class="tab-pane fade show active" id="pills-bus-inventory" role="tabpanel"
+                    aria-labelledby="pills-bus-inventory-tab">
+                    <?php include $directory . '/php/frontend/bus_inventory_components/bus_listing.php'; ?>
+                </div>
+                <div class="tab-pane fade" id="pills-add-bus" role="tabpanel" aria-labelledby="pills-add-bus-tab">
+                    <?php include $directory . '/php/frontend/bus_inventory_components/add_bus_form.php'; ?>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
